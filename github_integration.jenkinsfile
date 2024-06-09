@@ -2,13 +2,25 @@ pipeline {
     agent any
     /*environment{
         // environment variables to be defined as per chosen tools
+
+        SONARQUBE_URL = 'http://sample-sonarqube-server-url'
+        SONARQUBE_TOKEN = credentials('sonarqube-token-id')
+        ZAP_DOCKER_IMAGE = 'owasp/zap2docker-stable'
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        AWS_DEFAULT_REGION = 'us-west-2'  
+        STAGING_EC2_INSTANCE_ID = 'i-0123456789abcdef0'  
+        STAGING_EC2_INSTANCE_IP = '192.168.1.100'  
+        PRODUCTION_EC2_INSTANCE_ID = 'i-0987654321abcdef0'  
+        PRODUCTION_EC2_INSTANCE_IP = '192.168.1.101'  
     }*/
     stages {
         stage('Build') {
             steps {
                 echo "Build started...!"
                 // Using Maven to clean and package the project
-                // sh 'mvn clean package'
+                // sh 'mvn clean package | tee build.log'
+                // archiveArtifacts artifacts: 'build.log', allowEmptyArchive: true
             }
             post {
                 always {
@@ -24,14 +36,16 @@ pipeline {
             steps {
                 echo "Running unit and integration tests...!"
                 // Using Maven to run unit and integration tests
-                // sh 'mvn test'
+                // sh 'mvn test | tee test.log'
+                // archiveArtifacts artifacts: 'test.log', allowEmptyArchive: true
             }
             post {
                 always {
                 // sending an email notification after the tests are completed at this stage
                         mail to: "mariechoi430@gmail.com",
                         subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
-                        body: "Unit and Integration Tests log attached!!!"
+                        body: "Unit and Integration Tests log attached!!!",
+                        attachmentsPattern: 'test.log'
                 }
             }
         }
@@ -39,7 +53,9 @@ pipeline {
             steps {
                 echo "Analysing code quality...!"
                 // Use Maven for SonarQube analysis. The command below invokes the SonarCube Scanner to run an anlysis
-                // sh 'mvn sonar:sonar'
+                //withSonarQubeEnv('SonarQube') {  // 'SonarQube' is the name of the SonarQube server configured in Jenkins
+                // sh 'mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN | tee sonar.log'
+                // archiveArtifacts artifacts: 'sonar.log', allowEmptyArchive: true
                 /* SonarQube is commonly used with Jenkins to perform continuous inspection of code quality within a CI/CD pipeline. Integrating SonarQube with Jenkins allows users to automatically analyse their code for potential bugs, vulnerabilities, and code smells whenever a build is triggered.
                 */
             }
@@ -51,7 +67,11 @@ pipeline {
                 /* OWASP ZAP (Zed Attack Proxy) is an open-source security tool maintained by the OWASP (Open Web Application Security Project). It is designed to find security vulnerabilities in web applications during the development and testing phases. 
                  */
                 // running OWASP ZAP's baseline scan against a web application by using the command below
-                // sh 'zap-baseline.py -t http://localhost'
+                /*  sh """
+                docker run -v \$(pwd):/zap/wrk/:rw -t $ZAP_DOCKER_IMAGE zap-baseline.py -t http://localhost:8080 -r zap_report.html | tee security_scan.log
+                """ */
+                archiveArtifacts artifacts: 'security_scan.log', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true
             }
             post {
                 always {
@@ -61,6 +81,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to Staging') {
             steps {
                 echo "Deploying to a Staging server...!"
@@ -75,11 +96,21 @@ pipeline {
 
             }
         }
+        
         stage('Integration Tests on Staging') {
             steps {
                 echo "Running integration tests on staging environment...!"
                 // running the integration test script with the command below
-                // sh 'integration_tests.sh'
+                // sh 'run_integration_tests.sh | tee integration_tests.log'
+                // archiveArtifacts artifacts: 'integration_tests.log', allowEmptyArchive: true
+            }
+            post {
+                always {
+                    mail to: "mariechoi430@gmail.com",
+                    subject: "Integration Tests on Staging: ${currentBuild.currentResult}",
+                    body: "Integration Tests log attached!!!",
+                    attachmentsPattern: 'integration_tests.log'
+                }
             }
         }
         stage('Deploy to Production') {
@@ -100,12 +131,17 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
+
                  mail to: "mariechoi430@gmail.com",
                  subject: "Pipeline status: ${currentBuild.currentResult}",
-                 body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}"
+                 body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}",
+                 attachmentsPattern: "**/*.log, zap_report.html"
+
         }
+
     }
 }
+
