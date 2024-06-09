@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo "Build started...!"
+                // Use a build automation tool like Maven or Gradle
+                // sh 'mvn clean package'
+            }
+            post {
+                always {
+                    mail to: "mariechoi430@gmail.com",
+                         subject: "Build State Email Notification!",
+                         body: "Build log attached!!!"
+                }
+            }
+        }
+        stage('Unit and Integration Tests') {
+            steps {
+                echo "Running unit and integration tests...!"
+                // Use a test automation tool like JUnit or TestNG
+                // sh 'mvn test'
+            }
+            post {
+                always {
+                    mail to: "mariechoi430@gmail.com",
+                         subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
+                         body: "Unit and Integration Tests log attached!!!"
+                }
+            }
+        }
+        stage('Code Analysis') {
+            steps {
+                echo "Analyzing code quality...!"
+                // Use a code analysis tool like SonarQube
+                // sh 'mvn sonar:sonar'
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                echo "Performing security scan...!"
+                // Use a security scan tool like OWASP ZAP or Snyk
+                // sh 'zap-baseline.py -t http://localhost'
+            }
+            post {
+                always {
+                    mail to: "mariechoi430@gmail.com",
+                         subject: "Security Scan: ${currentBuild.currentResult}",
+                         body: "Security Scan log attached!!!"
+                }
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                echo "Deploying to Staging server...!"
+                // Use deployment scripts or tools like Ansible, Docker, or AWS CLI
+                // sh 'deploy_to_staging.sh'
+            }
+        }
+        stage('Integration Tests on Staging') {
+            steps {
+                echo "Running integration tests on Staging environment...!"
+                // Use integration test scripts or tools to verify the staging environment
+                // sh 'integration_tests.sh'
+            }
+        }
+        stage('Deploy to Production') {
+            steps {
+                echo "Deploying to Production server...!"
+                // Use deployment scripts or tools like Ansible, Docker, or AWS CLI
+                // sh 'deploy_to_production.sh'
+            }
+        }
+        stage('Complete') {
+            steps {
+                echo "Completed!!!"
+            }
+        }
+    }
+    
+    post {
+        always {
+            mail to: "mariechoi430@gmail.com",
+                 subject: "Pipeline status: ${currentBuild.currentResult}",
+                 body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}"
+        }
+    }
+}
