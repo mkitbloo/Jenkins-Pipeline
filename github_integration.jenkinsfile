@@ -1,8 +1,8 @@
 pipeline {
     agent any
-    environment{
-        // define environment variables
-    }
+    /*environment{
+        // environment variables to be defined as per chosen tools
+    }*/
     stages {
         stage('Build') {
             steps {
@@ -14,7 +14,7 @@ pipeline {
                 always {
                     // sending an email notification after the tests are completed at this stage
 
-                    mail to: "mariechoi430@gmail.com",
+                         mail to: "mariechoi430@gmail.com",
                          subject: "Build State Email Notification!",
                          body: "Build log attached!!!"
                 }
@@ -55,7 +55,7 @@ pipeline {
             }
             post {
                 always {
-                    mail to: "mariechoi430@gmail.com",
+                         mail to: "mariechoi430@gmail.com",
                          subject: "Security Scan: ${currentBuild.currentResult}",
                          body: "Security Scan log attached!!!"
                 }
@@ -85,7 +85,7 @@ pipeline {
         stage('Deploy to Production') {
             steps {
                 echo "Deploying to Production server...!"
-                // copying artifact to EC2 instance using scp
+                // copying artifact to EC2 instance using scp sample command below
                 /*
                 sh """
                 scp -i ~/.ssh/my-key.pem target/jenkins-artifact.jar ec2-user@$STAGING_EC2_INSTANCE_IP:/home/user/Documents/
@@ -103,7 +103,7 @@ pipeline {
     
     post {
         always {
-            mail to: "mariechoi430@gmail.com",
+                 mail to: "mariechoi430@gmail.com",
                  subject: "Pipeline status: ${currentBuild.currentResult}",
                  body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}"
         }
