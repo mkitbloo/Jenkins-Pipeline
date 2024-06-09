@@ -1,15 +1,19 @@
 pipeline {
     agent any
-
+    environment{
+        // define environment variables
+    }
     stages {
         stage('Build') {
             steps {
                 echo "Build started...!"
-                // Use a build automation tool like Maven or Gradle
+                // Using Maven to clean and package the project
                 // sh 'mvn clean package'
             }
             post {
                 always {
+                    // sending an email notification after the tests are completed at this stage
+
                     mail to: "mariechoi430@gmail.com",
                          subject: "Build State Email Notification!",
                          body: "Build log attached!!!"
@@ -19,28 +23,34 @@ pipeline {
         stage('Unit and Integration Tests') {
             steps {
                 echo "Running unit and integration tests...!"
-                // Use a test automation tool like JUnit or TestNG
+                // Using Maven to run unit and integration tests
                 // sh 'mvn test'
             }
             post {
                 always {
-                    mail to: "mariechoi430@gmail.com",
-                         subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
-                         body: "Unit and Integration Tests log attached!!!"
+                // sending an email notification after the tests are completed at this stage
+                        mail to: "mariechoi430@gmail.com",
+                        subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
+                        body: "Unit and Integration Tests log attached!!!"
                 }
             }
         }
         stage('Code Analysis') {
             steps {
-                echo "Analyzing code quality...!"
-                // Use a code analysis tool like SonarQube
+                echo "Analysing code quality...!"
+                // Use Maven for SonarQube analysis. The command below invokes the SonarCube Scanner to run an anlysis
                 // sh 'mvn sonar:sonar'
+                /* SonarQube is commonly used with Jenkins to perform continuous inspection of code quality within a CI/CD pipeline. Integrating SonarQube with Jenkins allows users to automatically analyse their code for potential bugs, vulnerabilities, and code smells whenever a build is triggered.
+                */
             }
         }
         stage('Security Scan') {
             steps {
                 echo "Performing security scan...!"
-                // Use a security scan tool like OWASP ZAP or Snyk
+                // Using OWASP ZAP for security scanning
+                /* OWASP ZAP (Zed Attack Proxy) is an open-source security tool maintained by the OWASP (Open Web Application Security Project). It is designed to find security vulnerabilities in web applications during the development and testing phases. 
+                 */
+                // running OWASP ZAP's baseline scan against a web application by using the command below
                 // sh 'zap-baseline.py -t http://localhost'
             }
             post {
@@ -53,28 +63,40 @@ pipeline {
         }
         stage('Deploy to Staging') {
             steps {
-                echo "Deploying to Staging server...!"
-                // Use deployment scripts or tools like Ansible, Docker, or AWS CLI
-                // sh 'deploy_to_staging.sh'
+                echo "Deploying to a Staging server...!"
+                // Using AWS EC2 instances as a staging server suitable for customising, easy to scale and integerating with other AWS services. 
+                // copying artifact to EC2 instance using scp(sample command below)
+                /*
+                sh """
+                scp -i ~/.ssh/my-key.pem target/jenkins-artifact.jar ec2-user@$STAGING_EC2_INSTANCE_IP:/home/user/Documents/
+                ssh -i ~/.ssh/my-key.pem ec2-user@$STAGING_EC2_INSTANCE_IP 'sudo systemctl restart myapp'
+                """
+                 */
+
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                echo "Running integration tests on Staging environment...!"
-                // Use integration test scripts or tools to verify the staging environment
+                echo "Running integration tests on staging environment...!"
+                // running the integration test script with the command below
                 // sh 'integration_tests.sh'
             }
         }
         stage('Deploy to Production') {
             steps {
                 echo "Deploying to Production server...!"
-                // Use deployment scripts or tools like Ansible, Docker, or AWS CLI
-                // sh 'deploy_to_production.sh'
+                // copying artifact to EC2 instance using scp
+                /*
+                sh """
+                scp -i ~/.ssh/my-key.pem target/jenkins-artifact.jar ec2-user@$STAGING_EC2_INSTANCE_IP:/home/user/Documents/
+                ssh -i ~/.ssh/my-key.pem ec2-user@$STAGING_EC2_INSTANCE_IP 'sudo systemctl restart myapp'
+                """
+                 */
             }
         }
         stage('Complete') {
             steps {
-                echo "Completed!!!"
+                echo "Congratulations! All Completed!!!"
             }
         }
     }
