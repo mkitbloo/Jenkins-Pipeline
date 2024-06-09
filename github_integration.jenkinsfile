@@ -110,7 +110,7 @@ pipeline {
                 always {
                     mail to: "mariechoi430@gmail.com",
                     subject: "Integration Tests on Staging: ${currentBuild.currentResult}",
-                    body: "Integration Tests log attached!!!",
+                    body: "Integration Tests log attached!!!"
                     // attachmentsPattern: 'integration_tests.log'
                 }
             }
@@ -139,7 +139,7 @@ pipeline {
 
                  mail to: "mariechoi430@gmail.com",
                  subject: "Pipeline status: ${currentBuild.currentResult}",
-                 body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}",
+                 body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}"
                  // attachmentsPattern: "**/*.log, zap_report.html"
 
         }
