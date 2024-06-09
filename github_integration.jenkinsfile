@@ -44,7 +44,7 @@ pipeline {
                 // sending an email notification after the tests are completed at this stage
                         mail to: "mariechoi430@gmail.com",
                         subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
-                        body: "Unit and Integration Tests log attached!!!",
+                        body: "Unit and Integration Tests log attached!!!"
                         // attachmentsPattern: 'test.log'
                 }
             }
@@ -146,4 +146,3 @@ pipeline {
 
     }
 }
-
