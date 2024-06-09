@@ -45,7 +45,7 @@ pipeline {
                         mail to: "mariechoi430@gmail.com",
                         subject: "Unit and Integration Tests: ${currentBuild.currentResult}",
                         body: "Unit and Integration Tests log attached!!!",
-                        attachmentsPattern: 'test.log'
+                        // attachmentsPattern: 'test.log'
                 }
             }
         }
@@ -70,8 +70,10 @@ pipeline {
                 /*  sh """
                 docker run -v \$(pwd):/zap/wrk/:rw -t $ZAP_DOCKER_IMAGE zap-baseline.py -t http://localhost:8080 -r zap_report.html | tee security_scan.log
                 """ */
+                /*
                 archiveArtifacts artifacts: 'security_scan.log', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'zap_report.html', allowEmptyArchive: true
+                */
             }
             post {
                 always {
@@ -109,7 +111,7 @@ pipeline {
                     mail to: "mariechoi430@gmail.com",
                     subject: "Integration Tests on Staging: ${currentBuild.currentResult}",
                     body: "Integration Tests log attached!!!",
-                    attachmentsPattern: 'integration_tests.log'
+                    // attachmentsPattern: 'integration_tests.log'
                 }
             }
         }
@@ -138,7 +140,7 @@ pipeline {
                  mail to: "mariechoi430@gmail.com",
                  subject: "Pipeline status: ${currentBuild.currentResult}",
                  body: "Build ${env.BUILD_NUMBER} finished with status: ${currentBuild.currentResult}",
-                 attachmentsPattern: "**/*.log, zap_report.html"
+                 // attachmentsPattern: "**/*.log, zap_report.html"
 
         }
 
